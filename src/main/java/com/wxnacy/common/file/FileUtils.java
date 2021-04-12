@@ -152,6 +152,10 @@ public class FileUtils {
         return results;
     }
 
+    /**
+     * 使用路径创建目录
+     * @param filePath
+     */
     public static void makeDir(String filePath) {
         File file = new File(filePath);
         if (file.exists()) {

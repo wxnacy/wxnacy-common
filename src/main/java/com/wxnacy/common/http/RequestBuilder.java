@@ -16,11 +16,10 @@ public class RequestBuilder {
     public static void main(String[] args) throws IOException {
         var client = RequestBuilder.getInstance();
         String filePath = "/Users/wxnacy/Downloads/test.jpg";
-        String url = "http://localhost:8092/static/nvshens/gallery/19411/35323/s/001.jpg";
+        String url = "http://wxnacy.com/images/mp.jpg";
 //        client.download(url, filePath);
+//        headers.put("referer", "https://www.nvshens.org");
         Map headers = new HashMap();
-        headers.put("referer", "https://www.nvshens.org");
-        url = "https://t1.onvshen.com:85/gallery/28131/35231/s/005.jpg";
         URL uri = new URL(url);
         System.out.println(uri.getPath());
         client.download(url, filePath, headers);
@@ -52,7 +51,6 @@ public class RequestBuilder {
         Request request = builder.build();
         try (Response response = client.newCall(request).execute()) {
             String contentType = response.header("Content-Type");
-//            System.out.println(contentType);
             File file  = new File(filePath);
             FileUtils.writeByteArrayToFile(file, response.body().bytes());
         }

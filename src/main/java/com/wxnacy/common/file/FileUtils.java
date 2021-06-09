@@ -1,6 +1,9 @@
 package com.wxnacy.common.file;
 
 import java.io.*;
+import java.lang.reflect.InvocationTargetException;
+import java.nio.file.*;
+import java.nio.file.attribute.BasicFileAttributes;
 import java.util.*;
 import java.util.function.Predicate;
 
@@ -9,12 +12,16 @@ import java.util.function.Predicate;
  */
 public class FileUtils {
     public static void main(String[] args) throws IOException {
+//        var fu = FileUtils.class.getDeclaredConstructor().newInstance();
+//        System.out.println("fu = " + fu);
         String dirPath = "/Users/wxnacy/Downloads/test1";
         String filePath = "/Users/wxnacy/Downloads/image-1.jpg";
-        Collection<File> files = listAllFile(dirPath, file -> file.getAbsolutePath().contains("txt"));
-        files.forEach( item -> {
-            System.out.println(item.getAbsolutePath());
-        });
+        Path path = Path.of("~/Downloads/test1");
+        System.out.println("path = " + path);
+        System.out.println("path.toAbsolutePath() = " + path.toAbsolutePath());
+        List<Path> files= (List<Path>) listAllFile(Paths.get(System.getenv("HOME"), "Downloads/test1"));
+        System.out.println("files = " + files);
+        
 
     }
 
@@ -70,6 +77,11 @@ public class FileUtils {
         return null;
     }
 
+    /**
+     * 将 byte 数组换转换为 string
+     * @param bytes
+     * @return
+     */
     private static String converBytesToHexToString(byte[] bytes ) {
         StringBuilder sb = new StringBuilder();
         for (byte b :
@@ -86,11 +98,11 @@ public class FileUtils {
      * @return Collection<File>
      * @throws IOException
      */
-    public static Collection<File> listAllFile(String dirName, FileType fileType) throws IOException {
+    public static Collection<Path> listAllFile(String dirName, FileType fileType) throws IOException {
         var files = listAllFile(dirName);
-        Collection<File> results = new LinkedList<>();
-        for (File file: files ) {
-            FileType ft = getFileType(file);
+        Collection<Path> results = new LinkedList<>();
+        for (Path file: files ) {
+            FileType ft = getFileType(file.toFile());
             if ( ft == fileType) {
                 results.add(file);
             }
@@ -104,9 +116,9 @@ public class FileUtils {
      * @param predicate 过滤函数式接口
      * @return Collection<File>
      */
-    public static Collection<File> listAllFile(String dirName, Predicate<File> predicate) {
-        Collection<File> files = listAllFile(dirName);
-        var res = new ArrayList<File>();
+    public static Collection<Path> listAllFile(String dirName, Predicate<Path> predicate) throws IOException {
+        Collection<Path> files = listAllFile(dirName);
+        var res = new ArrayList<Path>();
         files.iterator().forEachRemaining(file -> {
             if (predicate.test(file)) {
                 res.add(file);
@@ -116,40 +128,31 @@ public class FileUtils {
     }
 
     /**
+     * 遍历文件夹内所有的文件
+     * @param path
+     * @return
+     * @throws IOException
+     */
+    public static Collection<Path> listAllFile(Path path) throws IOException {
+        List<Path> result = new ArrayList<>();
+        Files.walkFileTree(path, new SimpleFileVisitor<Path>(){
+            @Override
+            public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
+                result.add(file);
+                return super.visitFile(file, attrs);
+            }
+        });
+
+        return result;
+    }
+
+    /**
      * 遍历文件夹的所有文件
      * @param dirName 文件夹
      * @return Collection<File>
      */
-    public static Collection<File> listAllFile(String dirName) {
-        File file = new File(dirName);
-        LinkedList<File> results = new LinkedList<>();
-        if (!file.exists()) {
-            return results;
-        }
-
-        LinkedList<File> dirList = new LinkedList<>();
-        for (File subFile :
-                file.listFiles()) {
-            if ( subFile.isDirectory()) {
-                dirList.push(subFile);
-            } else {
-                results.add(subFile);
-            }
-        }
-
-        while (!dirList.isEmpty()) {
-            var removeFile = dirList.removeFirst();
-            for (File subFile :
-                    removeFile.listFiles()) {
-                if (subFile.isDirectory()) {
-                    dirList.push(subFile);
-                } else {
-                    results.add(subFile);
-                }
-            }
-        }
-
-        return results;
+    public static Collection<Path> listAllFile(String dirName) throws IOException {
+        return listAllFile(Path.of(dirName));
     }
 
     /**

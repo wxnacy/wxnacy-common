@@ -1,25 +1,26 @@
 package com.wxnacy.common.http;
 
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
-import org.apache.commons.io.input.ReaderInputStream;
 
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.PrintStream;
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
-import java.util.Arrays;
 import java.util.Map;
 
 public class HttpUtils {
     public static void main(String[] args) {
         try {
-            HttpResponse<InputStream> response = get("https://wxnacy.com/");
-            System.out.println("toString(response) = " + toString(response));
+            String url = "http://wxnacy.com/images/mp.jpg";
+            HttpResponse<InputStream> response = get(url);
+            File file = new File("/Users/wxnacy/Downloads/index.jpg");
+            FileUtils.writeByteArrayToFile(file, IOUtils.toByteArray(response.body()));
 
         } catch (IOException e) {
             e.printStackTrace();
@@ -30,6 +31,18 @@ public class HttpUtils {
 
     public static String toString(HttpResponse<InputStream> response) throws IOException {
         return IOUtils.toString(response.body(), StandardCharsets.UTF_8);
+    }
+
+    public static void download(String url, String filePath) throws IOException, InterruptedException {
+        HttpResponse<InputStream> response = get(url);
+        File file = new File(filePath);
+        FileUtils.writeByteArrayToFile(file, IOUtils.toByteArray(response.body()));
+    }
+
+    public static void download(String url, String filePath, Map<String, String> headers) throws IOException, InterruptedException {
+        HttpResponse<InputStream> response = get(url, null, headers, null);
+        File file = new File(filePath);
+        FileUtils.writeByteArrayToFile(file, IOUtils.toByteArray(response.body()));
     }
 
     public static HttpResponse<InputStream> get(String url) throws IOException, InterruptedException {
